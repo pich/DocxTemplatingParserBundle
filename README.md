@@ -1,7 +1,7 @@
 DocxTemplatingParserBundle
 ==========================
 
-#Instalation
+#Installation
 
  * edit your composer.json to add
  ```json
