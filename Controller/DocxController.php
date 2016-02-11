@@ -4,7 +4,15 @@ namespace northvik\DocxTemplatingParserBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
-
+/**
+ * Class DocxController
+ * @package northvik\DocxTemplatingParserBundle\Controller
+ * @author Camille Pire <camillepire@northvik.fr>
+ *
+ * Main class:
+ * this class is the entry point of DocxTemplatingParserBundle it use to stock the docx template
+ *
+ */
 class DocxController extends Controller
 {
 
