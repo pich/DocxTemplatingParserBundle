@@ -100,24 +100,19 @@ class DocxController extends Controller
         $this->extractXml();
         $this->cleanXml();
 
-
         $environment = new \Twig_Environment(new \Twig_Loader_Array(array()));
         $template = $environment->createTemplate($this->xmlContent);
-
-
-//        $twig = new \Twig_Environment();
-//        $template = $twig->createTemplate($this->xmlContent);
-        $this->param=array('test'=>'hell yeh');
         $this->xmlContent = $template->render($this->param);
+        $this->addToLogs('Parse by twig');
 
-echo $this->xmlContent;
-        echo nl2br($this->logs);
-        return '';
+        $this->zipDocx();
+        return $this->pathTmpDir.'/'.$this->tmpName.'.docx';
     }
 
-
+    /**
+     *
+     */
     private function cleanXml(){
-        $cleanXml = '';
         $twigVars = array();
 
         $res = preg_match_all("/({{|{%|{#).*?(}}|%}|#})/", $this->xmlContent, $matches);
@@ -167,6 +162,28 @@ echo $this->xmlContent;
         }
         catch (\Exception $e) {
             $this->addToLogs('unzip : '.$e->getMessage());
+        }
+    }
+
+    /**
+     * zipDocx
+     * unzip the docx in $pathTmpDir = '/tmp/DocxTemplatingParserBundle' by default
+     */
+    private function zipDocx(){
+        try{
+            $zip = new \ZipArchive;
+            $res = $zip->open($this->pathTmpDir.'/'.$this->tmpName.'.docx');
+            if ($res === TRUE) {
+                $zip->deleteName('/word/document.xml');
+                $zip->addFromString('/word/document.xml', $this->xmlContent);
+                $zip->close();
+                $this->addToLogs('zip in '.$this->pathTmpDir.'/'.$this->tmpName.'.docx');
+            } else {
+                throw new \Exception('Fail to zip '.$this->template['basename']);
+            }
+        }
+        catch (\Exception $e) {
+            $this->addToLogs('zip : '.$e->getMessage());
         }
     }
 
