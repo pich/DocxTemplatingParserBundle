@@ -37,6 +37,11 @@ class DocxController extends Controller
     private $pathTmpDir = '/tmp/DocxTemplatingParserBundle';
 
     /**
+     * @var string
+     */
+    private $xmlContent;
+
+    /**
      * @var array
      */
     private $param;
@@ -80,7 +85,7 @@ class DocxController extends Controller
      * DocxController destructor.
      */
     function __destruct() {
-        rmdir($this->pathTmpDir.'/'.$this->tmpName);
+        $this->delTree($this->pathTmpDir.'/'.$this->tmpName);
     }
 
     /**
@@ -92,12 +97,61 @@ class DocxController extends Controller
     public function execute(){
         $this->checkTemplateFile();
         $this->unzipTemplate();
+        $this->extractXml();
+        $this->cleanXml();
 
+
+        $environment = new \Twig_Environment(new \Twig_Loader_Array(array()));
+        $template = $environment->createTemplate($this->xmlContent);
+
+
+//        $twig = new \Twig_Environment();
+//        $template = $twig->createTemplate($this->xmlContent);
+        $this->param=array('test'=>'hell yeh');
+        $this->xmlContent = $template->render($this->param);
+
+echo $this->xmlContent;
         echo nl2br($this->logs);
         return '';
     }
 
-    public function unzipTemplate(){
+
+    private function cleanXml(){
+        $cleanXml = '';
+        $twigVars = array();
+
+        $res = preg_match_all("/({{|{%|{#).*?(}}|%}|#})/", $this->xmlContent, $matches);
+        $matches = $matches[0];
+        foreach($matches as $match){
+            preg_match_all("#(</|<).*?(>|/>)#", $match, $result);
+            $tags = implode('',$result[0]);
+            $var = $match;
+            foreach($result[0] as $tag){
+                $var = str_ireplace($tag,'',$var);
+            }
+            $twigVars[] = array('match'=>$match,'twig'=>$var, 'tag'=>$tags);
+        }
+        $cleanXml=$this->xmlContent;
+        foreach($twigVars as $twigVar ){
+            $cleanXml = str_replace($twigVar['match'],$twigVar['tag'].$twigVar['twig'],$cleanXml);
+        }
+        $this->xmlContent=$cleanXml;
+        $this->addToLogs('xml clean');
+    }
+
+    /**
+     *
+     */
+    private function extractXml(){
+        $this->xmlContent = file_get_contents($this->pathTmpDir.'/'.$this->tmpName.'/word/document.xml');
+        $this->addToLogs('xml extract');
+    }
+
+    /**
+     * unzipTemplate
+     * unzip the docx in $pathTmpDir = '/tmp/DocxTemplatingParserBundle' by default
+     */
+    private function unzipTemplate(){
         try{
             copy($this->template['dirname'].'/'.$this->template['basename'], $this->pathTmpDir.'/'.$this->tmpName.'.docx');
             $this->addToLogs('copy at '.$this->pathTmpDir.'/'.$this->tmpName.'.docx');
@@ -149,6 +203,17 @@ class DocxController extends Controller
         }
     }
 
+    /**
+     * @param string $dir
+     * @return bool
+     */
+    private function delTree($dir) {
+        $files = array_diff(scandir($dir), array('.','..'));
+        foreach ($files as $file) {
+            (is_dir("$dir/$file")) ? $this->delTree("$dir/$file") : unlink("$dir/$file");
+        }
+        return rmdir($dir);
+    }
     /**
      * GetLogs
      * get the log vars for this object
