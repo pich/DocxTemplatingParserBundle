@@ -1,9 +1,18 @@
 DocxTemplatingParserBundle
 ==========================
 
+#Project
+
+The purpose of this project is to use a docx file as a template for generate docx file in Symfony.
+The docx template will use twig. Then the bundle parse the xml and give the twig to the twig parser and finaly regenerate a docx.  
+
+For this project i use an original idea of my employer `http://www.echosystems.fr/`. 
+I'm allow to reproduce and improve the idea.
+
+
 #Installation
 
- * edit your composer.json to add
+ * Edit your composer.json to add
  ```json
  [...]
      "require" : {
@@ -23,8 +32,12 @@ DocxTemplatingParserBundle
  $ php composer.phar update northvik/DocxTemplatingParserBundle
  ```
  
- * edit your app/AppKernel to add
+ * Edit your app/AppKernel to add
  ```php
  new \northvik\DocxTemplatingParserBundle\northvikDocxTemplatingParserBundle()
  ```
+ 
+ #Compatibility
+ 
+ I work on a Symfony 2.3 for this Bundle with php 5.6
  
