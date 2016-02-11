@@ -6,7 +6,7 @@ DocxTemplatingParserBundle
 The purpose of this project is to use a docx file as a template for generate docx file in Symfony.
 The docx template will use twig. Then the bundle parse the xml and give the twig to the twig parser and finaly regenerate a docx.  
 
-For this project i use an original idea of my employer `http://www.echosystems.fr/`. 
+For this project i use an original idea of my employer http://www.echosystems.fr/s. 
 I'm allow to reproduce and improve the idea.
 
 
