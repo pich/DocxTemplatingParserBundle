@@ -1,0 +1,30 @@
+{
+  "name" : "northvik/DocxTemplatingParserBundle",
+  "description" : "A demo bundle",
+  "type" : "symfony-bundle",
+  "authors" : [{
+    "name" : "Camille Pire",
+    "email" : "camillepire@northvik.fr"
+  }],
+  "keywords" : [
+    "demo bundle"
+  ],
+  "license" : [
+    "MIT"
+  ],
+  "require" : {
+  },
+  "autoload" : {
+    "psr-0" : {
+      "northvik\\DocxTemplatingParserBundle" : ""
+    }
+  },
+  "target-dir" : "northvik/DocxTemplatingParserBundle",
+  "repositories" : [{
+  }],
+  "extra" : {
+    "branch-alias" : {
+      "dev-master" : "0.1"
+    }
+  }
+}
