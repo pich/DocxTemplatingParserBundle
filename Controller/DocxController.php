@@ -104,7 +104,6 @@ class DocxController extends Controller
         $template = $environment->createTemplate($this->xmlContent);
         $this->xmlContent = $template->render($this->param);
         $this->addToLogs('Parse by twig');
-
         $this->zipDocx();
         return $this->pathTmpDir.'/'.$this->tmpName.'.docx';
     }
@@ -124,8 +123,13 @@ class DocxController extends Controller
             foreach($result[0] as $tag){
                 $var = str_ireplace($tag,'',$var);
             }
+            //changing office word quote to readable quote for twig
+            $var = str_ireplace(array('‘', '`' , "'", '’'),"'",$var); // replace ‘ ` ’ '  by '
+            $var = str_ireplace(array('»', '«', '"'),'"',$var);// replace « » "  by "
+
             $twigVars[] = array('match'=>$match,'twig'=>$var, 'tag'=>$tags);
         }
+
         $cleanXml=$this->xmlContent;
         foreach($twigVars as $twigVar ){
             $cleanXml = str_replace($twigVar['match'],$twigVar['tag'].$twigVar['twig'],$cleanXml);
