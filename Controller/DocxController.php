@@ -81,12 +81,12 @@ class DocxController extends Controller
         $this->addToLogs('Construct');
     }
 
-    /**
-     * DocxController destructor.
-     */
-    function __destruct() {
-        $this->delTree($this->pathTmpDir.'/'.$this->tmpName);
-    }
+//    /**
+//     * DocxController destructor.
+//     */
+//    function __destruct() {
+//        $this->delTree($this->pathTmpDir.'/'.$this->tmpName);
+//    }
 
     /**
      * Execute
@@ -159,6 +159,7 @@ class DocxController extends Controller
             if ($zip->open($this->pathTmpDir.'/'.$this->tmpName.'.docx') === TRUE) {
                 $zip->extractTo($this->pathTmpDir.'/'.$this->tmpName);
                 $zip->close();
+
                 $this->addToLogs('unzip in '.$this->pathTmpDir.'/'.$this->tmpName);
             } else {
                 throw new \Exception('Fail to unzip '.$this->template['basename']);
@@ -176,11 +177,10 @@ class DocxController extends Controller
     private function zipDocx(){
         try{
             $zip = new \ZipArchive;
-            $res = $zip->open($this->pathTmpDir.'/'.$this->tmpName.'.docx');
-            if ($res === TRUE) {
-                $zip->deleteName('/word/document.xml');
-                $zip->addFromString('/word/document.xml', $this->xmlContent);
+            if ($zip->open($this->pathTmpDir.'/'.$this->tmpName.'.docx') === TRUE) {
+                $zip->addFromString('/word/document.xml', utf8_encode($this->xmlContent));
                 $zip->close();
+
                 $this->addToLogs('zip in '.$this->pathTmpDir.'/'.$this->tmpName.'.docx');
             } else {
                 throw new \Exception('Fail to zip '.$this->template['basename']);
