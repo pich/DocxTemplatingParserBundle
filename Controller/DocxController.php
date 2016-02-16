@@ -29,7 +29,7 @@ class DocxController extends Controller
     /**
      * @var array
      */
-    private $template;
+    private $templateInfo;
 
     /**
      * @var string
@@ -116,6 +116,7 @@ class DocxController extends Controller
         $this->zipDocx();
 
         copy($this->pathTmpDir.'/'.$this->tmpName.'.docx', $this->pathTemplateOutput);
+        $this->addToLogs('docx move to '.$this->pathTemplateOutput);
         return true;
     }
 
@@ -163,7 +164,7 @@ class DocxController extends Controller
      */
     private function unzipTemplate(){
         try{
-            copy($this->template['dirname'].'/'.$this->template['basename'], $this->pathTmpDir.'/'.$this->tmpName.'.docx');
+            copy($this->templateInfo['dirname'].'/'.$this->templateInfo['basename'], $this->pathTmpDir.'/'.$this->tmpName.'.docx');
             $this->addToLogs('copy at '.$this->pathTmpDir.'/'.$this->tmpName.'.docx');
 
             $zip = new \ZipArchive;
@@ -173,7 +174,7 @@ class DocxController extends Controller
 
                 $this->addToLogs('unzip in '.$this->pathTmpDir.'/'.$this->tmpName);
             } else {
-                throw new \Exception('Fail to unzip '.$this->template['basename']);
+                throw new \Exception('Fail to unzip '.$this->templateInfo['basename']);
             }
         }
         catch (\Exception $e) {
@@ -195,7 +196,7 @@ class DocxController extends Controller
 
                 $this->addToLogs('zip in '.$this->pathTmpDir.'/'.$this->tmpName.'.docx');
             } else {
-                throw new \Exception('Fail to zip '.$this->template['basename']);
+                throw new \Exception('Fail to zip '.$this->templateInfo['basename']);
             }
         }
         catch (\Exception $e) {
@@ -213,11 +214,11 @@ class DocxController extends Controller
             throw new \Exception(sprintf('The file "%s" does not exist', $this->pathTemplateInput));
         }
         $this->addToLogs('File exist');
-        $this->template = pathinfo(realpath($this->pathTemplateInput));
-        if($this->template['extension'] != 'docx'){
-            throw new \Exception(sprintf('The file "%s" is not a docx', $this->template['basename']));
+        $this->templateInfo = pathinfo(realpath($this->pathTemplateInput));
+        if($this->templateInfo['extension'] != 'docx'){
+            throw new \Exception(sprintf('The file "%s" is not a docx', $this->templateInfo['basename']));
         }
-        $this->addToLogs('File '.$this->template['basename'].' is a docx');
+        $this->addToLogs('File '.$this->templateInfo['basename'].' is a docx');
     }
 
     /**
@@ -226,14 +227,11 @@ class DocxController extends Controller
      *
      * @param string $log
      */
-    private function addToLogs($log){
-        $date=new \DateTime('now');
-        if(isset($this->template['basename'])){
-            $this->logs .= '['.$date->format('d-m-Y h:i:s').'][northvik\DocxTemplatingParserBundle]['.$this->template['basename'].']'.$log."\n";
-
-        }else{
-            $this->logs .= '['.$date->format('d-m-Y h:i:s').'][northvik\DocxTemplatingParserBundle]'.$log."\n";
-        }
+    public function addToLogs($log)
+    {
+        $date = new \DateTime('now');
+        $this->logs .= '[' . $date->format('d-m-Y h:i:s') . '][northvik\DocxTemplatingParserBundle]';
+        $this->logs .= isset($this->templateInfo['basename']) ? ('[' . $this->templateInfo['basename'] . ']' . $log . "\n") : ($log . "\n");
     }
 
     /**
