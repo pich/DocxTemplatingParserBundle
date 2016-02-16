@@ -47,7 +47,6 @@ class DocxParserService
             || strtolower(pathinfo($pathTemplateOutput, PATHINFO_EXTENSION)) != 'docx'){
             throw new \Exception(sprintf('The output path "%s" is not valide', $pathTemplateOutput));
         }
-
         $this->docx = new DocxModel($pathTemplateInput, $pathTemplateOutput, $param , $option);
         
         $this->unzipTemplate();
