@@ -178,7 +178,8 @@ class DocxController extends Controller
         try{
             $zip = new \ZipArchive;
             if ($zip->open($this->pathTmpDir.'/'.$this->tmpName.'.docx') === TRUE) {
-                $zip->addFromString('/word/document.xml', utf8_encode($this->xmlContent));
+                $zip->deleteName('word/document.xml');
+                $zip->addFromString('word/document.xml', $this->xmlContent);
                 $zip->close();
 
                 $this->addToLogs('zip in '.$this->pathTmpDir.'/'.$this->tmpName.'.docx');
