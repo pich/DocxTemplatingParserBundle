@@ -69,15 +69,6 @@ class DocxModel
      */
     public function __construct($pathTemplateInput, $pathTemplateOutput, array $param = array(), array $option = array())
     {
-        if(!is_string($pathTemplateInput)
-            || !file_exists($pathTemplateInput)
-            || strtolower(pathinfo($pathTemplateInput, PATHINFO_EXTENSION)) != 'docx'){
-            throw new \Exception(sprintf('The input path "%s" is not valide', $pathTemplateInput));
-        }
-        if(!is_string($pathTemplateOutput) || strtolower(pathinfo($pathTemplateOutput, PATHINFO_EXTENSION)) != 'docx'){
-            throw new \Exception(sprintf('The output path "%s" is not valide', $pathTemplateOutput));
-        }
-
         /*
          * Prepare unique value for temporary file and directory
          */

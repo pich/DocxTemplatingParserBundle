@@ -2,6 +2,9 @@
 
 namespace northvik\DocxTemplatingParserBundle\Service;
 
+use northvik\DocxTemplatingParserBundle\Model\DocxModel;
+use Twig_Environment;
+use Twig_Loader_Array;
 
 /**
  * Class DocxParserService
@@ -15,73 +18,92 @@ namespace northvik\DocxTemplatingParserBundle\Service;
 class DocxParserService
 {
 
+    protected $docx;
     /**
      * DocxParserService constructor.
      *
      */
     public function __construct()
     {
-
     }
 
     /**
-     * Execute
+     * Parse
      *
+     * @param $pathTemplateInput
+     * @param $pathTemplateOutput
+     * @param array $param
+     * @param array $option
      * @return string
      * @throws \Exception
      */
-    public function execute(){
+    public function parse($pathTemplateInput, $pathTemplateOutput, array $param = array(), array $option = array()){
+        if(!is_string($pathTemplateInput)
+            || !file_exists($pathTemplateInput)
+            || strtolower(pathinfo($pathTemplateInput, PATHINFO_EXTENSION)) != 'docx'){
+            throw new \Exception(sprintf('The input path "%s" is not valide', $pathTemplateInput));
+        }
+        if(!is_string($pathTemplateOutput)
+            || strtolower(pathinfo($pathTemplateOutput, PATHINFO_EXTENSION)) != 'docx'){
+            throw new \Exception(sprintf('The output path "%s" is not valide', $pathTemplateOutput));
+        }
+
+        $this->docx = new DocxModel($pathTemplateInput, $pathTemplateOutput, $param , $option);
+        
         $this->unzipTemplate();
         $this->extractXml();
         $this->cleanXml();
 
-        $environment = new \Twig_Environment(new \Twig_Loader_Array(array()));
-        $template = $environment->createTemplate($this->xmlContent);
-        $this->xmlContent = $template->render($this->param);
-        $this->addToLogs('Parse by twig');
+        $environment = new Twig_Environment(new Twig_Loader_Array(array()));
+        $template = $environment->createTemplate($this->docx->getXmlContent());
+        $this->docx->setXmlContent( $template->render($this->docx->getParam()));
+        $this->docx->addToLogs('Parse by twig');
         $this->zipDocx();
 
-        copy($this->pathTmpDir.'/'.$this->tmpName.'.docx', $this->pathTemplateOutput);
-        $this->addToLogs('docx move to '.$this->pathTemplateOutput);
-        return true;
+        copy($this->docx->getPathTmpDir().'/'.$this->docx->getTmpName().'.docx', $this->docx->getPathTemplateOutput());
+        $this->docx->addToLogs('docx move to '.$this->docx->getPathTemplateOutput());
+        return $this->docx->getLogs();
     }
 
     /**
-     *
+     * CleanXml
      */
     private function cleanXml(){
         $twigVars = array();
 
-        $res = preg_match_all("/({{|{%|{#).*?(}}|%}|#})/", $this->xmlContent, $matches);
-        $matches = $matches[0];
-        foreach($matches as $match){
-            preg_match_all("#(</|<).*?(>|/>)#", $match, $result);
-            $tags = implode('',$result[0]);
-            $var = $match;
-            foreach($result[0] as $tag){
-                $var = str_ireplace($tag,'',$var);
+        $res = preg_match_all("/({{|{%|{#).*?(}}|%}|#})/", $this->docx->getXmlContent(), $matches);
+        if($res!=false && !empty($matches)) {
+            $matches = $matches[0];
+            foreach ($matches as $match) {
+                if(preg_match_all("#(</|<).*?(>|/>)#", $match, $result)!=false) {
+                    $tags = implode('', $result[0]);
+                    $var = $match;
+                    foreach ($result[0] as $tag) {
+                        $var = str_ireplace($tag, '', $var);
+                    }
+                    //changing office word quote to readable quote for twig
+                    $var = str_ireplace(array('‘', '`', "'", '’'), "'", $var); // replace ‘ ` ’ '  by '
+                    $var = str_ireplace(array('»', '«', '"'), '"', $var);// replace « » "  by "
+
+                    $twigVars[] = array('match' => $match, 'twig' => $var, 'tag' => $tags);
+                }
             }
-            //changing office word quote to readable quote for twig
-            $var = str_ireplace(array('‘', '`' , "'", '’'),"'",$var); // replace ‘ ` ’ '  by '
-            $var = str_ireplace(array('»', '«', '"'),'"',$var);// replace « » "  by "
 
-            $twigVars[] = array('match'=>$match,'twig'=>$var, 'tag'=>$tags);
+            $cleanXml = $this->docx->getXmlContent();
+            foreach ($twigVars as $twigVar) {
+                $cleanXml = str_replace($twigVar['match'], $twigVar['tag'] . $twigVar['twig'], $cleanXml);
+            }
+            $this->docx->setXmlContent($cleanXml);
+            $this->docx->addToLogs('xml clean');
         }
-
-        $cleanXml=$this->xmlContent;
-        foreach($twigVars as $twigVar ){
-            $cleanXml = str_replace($twigVar['match'],$twigVar['tag'].$twigVar['twig'],$cleanXml);
-        }
-        $this->xmlContent=$cleanXml;
-        $this->addToLogs('xml clean');
     }
 
     /**
      *
      */
     private function extractXml(){
-        $this->xmlContent = file_get_contents($this->pathTmpDir.'/'.$this->tmpName.'/word/document.xml');
-        $this->addToLogs('xml extract');
+        $this->docx->setXmlContent( file_get_contents($this->docx->getPathTmpDir().'/'.$this->docx->getTmpName().'/word/document.xml'));
+        $this->docx->addToLogs('xml extract');
     }
 
     /**
@@ -90,21 +112,22 @@ class DocxParserService
      */
     private function unzipTemplate(){
         try{
-            copy($this->templateInfo['dirname'].'/'.$this->templateInfo['basename'], $this->pathTmpDir.'/'.$this->tmpName.'.docx');
-            $this->addToLogs('copy at '.$this->pathTmpDir.'/'.$this->tmpName.'.docx');
+            $templateInfo = $this->docx->getTemplateInfo();
+            copy($this->docx->getPathTemplateInput(), $this->docx->getPathTmpDir().'/'.$this->docx->getTmpName().'.docx');
+            $this->docx->addToLogs('copy at '.$this->docx->getPathTmpDir().'/'.$this->docx->getTmpName().'.docx');
 
             $zip = new \ZipArchive;
-            if ($zip->open($this->pathTmpDir.'/'.$this->tmpName.'.docx') === TRUE) {
-                $zip->extractTo($this->pathTmpDir.'/'.$this->tmpName);
+            if ($zip->open($this->docx->getPathTmpDir().'/'.$this->docx->getTmpName().'.docx') === TRUE) {
+                $zip->extractTo($this->docx->getPathTmpDir().'/'.$this->docx->getTmpName());
                 $zip->close();
 
-                $this->addToLogs('unzip in '.$this->pathTmpDir.'/'.$this->tmpName);
+                $this->docx->addToLogs('unzip in '.$this->docx->getPathTmpDir().'/'.$this->docx->getTmpName());
             } else {
-                throw new \Exception('Fail to unzip '.$this->templateInfo['basename']);
+                throw new \Exception('Fail to unzip '.$templateInfo['basename']);
             }
         }
         catch (\Exception $e) {
-            $this->addToLogs('unzip : '.$e->getMessage());
+            $this->docx->addToLogs('unzip : '.$e->getMessage());
         }
     }
 
@@ -114,19 +137,20 @@ class DocxParserService
      */
     private function zipDocx(){
         try{
+            $templateInfo = $this->docx->getTemplateInfo();
             $zip = new \ZipArchive;
-            if ($zip->open($this->pathTmpDir.'/'.$this->tmpName.'.docx') === TRUE) {
+            if ($zip->open($this->docx->getPathTmpDir().'/'.$this->docx->getTmpName().'.docx') === TRUE) {
                 $zip->deleteName('word/document.xml');
-                $zip->addFromString('word/document.xml', $this->xmlContent);
+                $zip->addFromString('word/document.xml', $this->docx->getXmlContent());
                 $zip->close();
 
-                $this->addToLogs('zip in '.$this->pathTmpDir.'/'.$this->tmpName.'.docx');
+                $this->docx->addToLogs('zip in '.$this->docx->getPathTmpDir().'/'.$this->docx->getTmpName().'.docx');
             } else {
-                throw new \Exception('Fail to zip '.$this->templateInfo['basename']);
+                throw new \Exception('Fail to zip '.$templateInfo['basename']);
             }
         }
         catch (\Exception $e) {
-            $this->addToLogs('zip : '.$e->getMessage());
+            $this->docx->addToLogs('zip : '.$e->getMessage());
         }
     }
 }
