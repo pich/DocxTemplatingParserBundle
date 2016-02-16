@@ -19,7 +19,12 @@ class DocxController extends Controller
     /**
      * @var string
      */
-    private $pathTemplate;
+    private $pathTemplateInput;
+
+    /**
+     * @var string
+     */
+    private $pathTemplateOutput;
 
     /**
      * @var array
@@ -34,7 +39,7 @@ class DocxController extends Controller
     /**
      * @var string
      */
-    private $pathTmpDir = '/tmp/DocxTemplatingParserBundle';
+    private $pathTmpDir;
 
     /**
      * @var string
@@ -58,35 +63,39 @@ class DocxController extends Controller
 
     /**
      * DocxController constructor.
-     * @param string $pathTemplate
+     * @param $pathTemplateInput
+     * @param $pathTemplateOutput
      * @param array $param = array()
      * @param array $option = array()
+     * @internal param string $pathTemplate
      */
-    public function __construct($pathTemplate, array $param = array(), array $option = array())
+    public function __construct($pathTemplateInput, $pathTemplateOutput, array $param = array(), array $option = array())
     {
         /*
-         * prepare unique value for temporary file and directory
+         * Prepare unique value for temporary file and directory
          */
         $date=new \DateTime('now');
         $this->tmpName = $date->format('U');
+        $this->pathTmpDir= sys_get_temp_dir().'/DocxTemplatingParserBundle';
         if(!is_dir($this->pathTmpDir)){
             mkdir($this->pathTmpDir);
-            chown($this->pathTmpDir,'www-data');
         }
 
-        $this->pathTemplate = $pathTemplate;
+        $this->pathTemplateInput = $pathTemplateInput;
+        $this->pathTemplateOutput = $pathTemplateOutput;
         $this->param = $param;
         $this->option = $option;
         $this->logs = '';
         $this->addToLogs('Construct');
     }
 
-//    /**
-//     * DocxController destructor.
-//     */
-//    function __destruct() {
-//        $this->delTree($this->pathTmpDir.'/'.$this->tmpName);
-//    }
+    /**
+     * DocxController destructor.
+     */
+    function __destruct() {
+        $this->delTree($this->pathTmpDir.'/'.$this->tmpName);
+        unlink($this->pathTmpDir.'/'.$this->tmpName.'.docx');
+    }
 
     /**
      * Execute
@@ -105,7 +114,9 @@ class DocxController extends Controller
         $this->xmlContent = $template->render($this->param);
         $this->addToLogs('Parse by twig');
         $this->zipDocx();
-        return $this->pathTmpDir.'/'.$this->tmpName.'.docx';
+
+        copy($this->pathTmpDir.'/'.$this->tmpName.'.docx', $this->pathTemplateOutput);
+        return true;
     }
 
     /**
@@ -198,11 +209,11 @@ class DocxController extends Controller
      * @throws \Exception
      */
     private function checkTemplateFile(){
-        if(!file_exists($this->pathTemplate)){
-            throw new \Exception(sprintf('The file "%s" does not exist', $this->pathTemplate));
+        if(!file_exists($this->pathTemplateInput)){
+            throw new \Exception(sprintf('The file "%s" does not exist', $this->pathTemplateInput));
         }
         $this->addToLogs('File exist');
-        $this->template = pathinfo(realpath($this->pathTemplate));
+        $this->template = pathinfo(realpath($this->pathTemplateInput));
         if($this->template['extension'] != 'docx'){
             throw new \Exception(sprintf('The file "%s" is not a docx', $this->template['basename']));
         }

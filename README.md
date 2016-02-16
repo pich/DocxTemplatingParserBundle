@@ -37,6 +37,10 @@ I'm allow to reproduce and improve the idea.
  new \northvik\DocxTemplatingParserBundle\northvikDocxTemplatingParserBundle()
  ```
  
+ * Make sure your php.ini have timezone configure, a tmp dir with the good rights and the extension ```extension=zip.so```
+ 
+ 
+ 
  #Compatibility
  
  I work on a Symfony 2.3 for this Bundle with php 5.6
