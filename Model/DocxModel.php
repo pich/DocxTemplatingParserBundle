@@ -216,27 +216,11 @@ class DocxModel
     }
 
     /**
-     * @param string $tmpName
-     */
-    public function setTmpName($tmpName)
-    {
-        $this->tmpName = $tmpName;
-    }
-
-    /**
      * @return string
      */
     public function getPathTmpDir()
     {
         return $this->pathTmpDir;
-    }
-
-    /**
-     * @param string $pathTmpDir
-     */
-    public function setPathTmpDir($pathTmpDir)
-    {
-        $this->pathTmpDir = $pathTmpDir;
     }
 
     /**
