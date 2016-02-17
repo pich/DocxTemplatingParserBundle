@@ -69,7 +69,6 @@ class DocxParserService
      */
     private function cleanXml(){
         $twigVars = array();
-
         $res = preg_match_all("/({{|{%|{#).*?(}}|%}|#})/", $this->docx->getXmlContent(), $matches);
         if($res!=false && !empty($matches)) {
             $matches = $matches[0];
@@ -81,13 +80,16 @@ class DocxParserService
                         $var = str_ireplace($tag, '', $var);
                     }
                     //changing office word quote to readable quote for twig
-                    $var = str_ireplace(array('‘', '`', "'", '’'), "'", $var); // replace ‘ ` ’ '  by '
-                    $var = str_ireplace(array('»', '«', '"'), '"', $var);// replace « » "  by "
-
+                    $quote='‘|`|&apos;|’|´|·|᾽|᾿|῀|`|´|῾|&apos;»|«|&quot;|῀|῍|῎|῏|῝|“|”';
+                    $var = str_ireplace(explode('|',$quote), "'", $var); // replace ‘ ` ’ '  by '
                     $twigVars[] = array('match' => $match, 'twig' => $var, 'tag' => $tags);
+                }else{
+                    //changing office word quote to readable quote for twig
+                    $quote='‘|`|&apos;|’|´|·|᾽|᾿|῀|`|´|῾|&apos;»|«|&quot;|῀|῍|῎|῏|῝|“|”';
+                    $match = str_ireplace(explode('|',$quote), "'", $match);
+                    $twigVars[] = array('match' => $match, 'twig' => $match, 'tag' => '');
                 }
             }
-
             $cleanXml = $this->docx->getXmlContent();
             foreach ($twigVars as $twigVar) {
                 $cleanXml = str_replace($twigVar['match'], $twigVar['tag'] . $twigVar['twig'], $cleanXml);
