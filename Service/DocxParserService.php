@@ -3,6 +3,7 @@
 namespace northvik\DocxTemplatingParserBundle\Service;
 
 use northvik\DocxTemplatingParserBundle\Model\DocxModel;
+use northvik\DocxTemplatingParserBundle\Twig\Extension\TableExtension;
 use Twig_Environment;
 use Twig_Loader_Array;
 
@@ -17,8 +18,11 @@ use Twig_Loader_Array;
  */
 class DocxParserService
 {
-
+    /**
+     * @var DocxModel $docx
+     */
     protected $docx;
+
     /**
      * DocxParserService constructor.
      *
@@ -29,6 +33,8 @@ class DocxParserService
 
     /**
      * Parse
+     *
+     * Main methode.
      *
      * @param $pathTemplateInput
      * @param $pathTemplateOutput
@@ -53,9 +59,7 @@ class DocxParserService
         $this->extractXml();
         $this->cleanXml();
 
-        $environment = new Twig_Environment(new Twig_Loader_Array(array()));
-        $template = $environment->createTemplate($this->docx->getXmlContent());
-        $this->docx->setXmlContent( $template->render($this->docx->getParam()));
+        $this->docx->setXmlContent( $this->getTemplate()->render($this->docx->getParam()));
         $this->docx->addToLogs('Parse by twig');
         $this->zipDocx();
 
@@ -65,14 +69,36 @@ class DocxParserService
     }
 
     /**
+     * GetLogs
+     *
+     * @return string
+     */
+    public function getLogs(){
+        return $this->docx->getLogs();
+    }
+
+    /**
+     * GetDocx
+     *
+     * @return DocxModel
+     */
+    public function getDocx(){
+        return $this->docx;
+    }
+
+    /**
      * CleanXml
+     *
+     * This function is use for isolate the twig of the xml and clean it
      */
     private function cleanXml(){
         $twigVars = array();
+        /** First part catch all the twig balise */
         $res = preg_match_all("/({{|{%|{#).*?(}}|%}|#})/", $this->docx->getXmlContent(), $matches);
         if($res!=false && !empty($matches)) {
             $matches = $matches[0];
             foreach ($matches as $match) {
+                /** Then get all the xml balise in the twig balise */
                 if(preg_match_all("#(</|<).*?(>|/>)#", $match, $result)!=false) {
                     $tags = implode('', $result[0]);
                     $var = $match;
@@ -81,7 +107,7 @@ class DocxParserService
                     }
                     //changing office word quote to readable quote for twig
                     $quote='‘|`|&apos;|’|´|·|᾽|᾿|῀|`|´|῾|&apos;»|»|«|&quot;|῀|῍|῎|῏|῝|“|”';
-                    $var = str_ireplace(explode('|',$quote), "'", $var); // replace ‘ ` ’ '  by '
+                    $var = str_ireplace(explode('|',$quote), "'", $var);
                     $twigVars[] = array('match' => $match, 'twig' => $var, 'tag' => $tags);
                 }else{
                     //changing office word quote to readable quote for twig
@@ -90,9 +116,10 @@ class DocxParserService
                     $twigVars[] = array('match' => $match, 'twig' => $var, 'tag' => '');
                 }
             }
-//var_dump($twigVars);die();
             $cleanXml = $this->docx->getXmlContent();
-            foreach ($twigVars as $twigVar) {
+            /** Finaly replace twig balise by twig balise without xml inside and with good quote.
+             * And put the xml balise find in the twig before the twig */
+            foreach ($twigVars as $i => $twigVar) {
                 $cleanXml = str_replace($twigVar['match'], $twigVar['tag'] . $twigVar['twig'], $cleanXml);
             }
             $this->docx->setXmlContent($cleanXml);
@@ -101,7 +128,7 @@ class DocxParserService
     }
 
     /**
-     *
+     * ExtractXml
      */
     private function extractXml(){
         $this->docx->setXmlContent( file_get_contents($this->docx->getPathTmpDir().'/'.$this->docx->getTmpName().'/word/document.xml'));
@@ -109,7 +136,7 @@ class DocxParserService
     }
 
     /**
-     * unzipTemplate
+     * UnzipTemplate
      * unzip the docx in $pathTmpDir = '/tmp/DocxTemplatingParserBundle' by default
      */
     private function unzipTemplate(){
@@ -135,7 +162,7 @@ class DocxParserService
 
     /**
      * zipDocx
-     * unzip the docx in $pathTmpDir = '/tmp/DocxTemplatingParserBundle' by default
+     * zip the docx with all the change an word/document.xml
      */
     private function zipDocx(){
         try{
@@ -154,5 +181,18 @@ class DocxParserService
         catch (\Exception $e) {
             $this->docx->addToLogs('zip : '.$e->getMessage());
         }
+    }
+
+    /**
+     * GetTemplate
+     * Prepare template for the render with all the twig extension
+     *
+     * @return \Twig_Template|\Twig_TemplateInterface
+     */
+    private function getTemplate(){
+        $environment = new Twig_Environment(new Twig_Loader_Array(array()));
+        $environment->addExtension(new TableExtension());
+
+        return $environment->createTemplate($this->docx->getXmlContent());
     }
 }

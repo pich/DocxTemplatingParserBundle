@@ -8,6 +8,9 @@
     <services>
         <service id="northvik_docx_templating_parser.docx_parser" class="northvik\DocxTemplatingParserBundle\Service\DocxParserService">
         </service>
+        <service id="northvik_docx_templating_parser.twig_table" class="northvik\DocxTemplatingParserBundle\Twig\Extension\TableExtension" public="false">
+            <tag name="twig.extension" />
+        </service>
     </services>
 
 </container>
