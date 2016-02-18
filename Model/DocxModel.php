@@ -8,7 +8,7 @@ namespace northvik\DocxTemplatingParserBundle\Model;
  * @package northvik\DocxTemplatingParserBundle\Model
  * @author Camille Pire <camillepire@northvik.fr>
  *
- * it use to stock the docx template
+ * It is use to stock the docx template
  *
  */
 class DocxModel
@@ -98,7 +98,7 @@ class DocxModel
 
     /**
      * GetLogs
-     * get the log vars for this object
+     * get the log vars for this object\n
      * use to debug
      *
      * @return string
@@ -122,6 +122,10 @@ class DocxModel
     }
 
     /**
+     * DelTree
+     * Use to delete recursively files from a dir
+     * Use in the destructor
+     *
      * @param string $dir
      * @return bool
      */
