@@ -1,4 +1,10 @@
 <?php
+/**
+ * DocxParserService.php
+ *
+ * @author Camille Pire <camillepire@northvik.fr>
+ * Date: 27/02/2016
+ */
 
 namespace northvik\DocxTemplatingParserBundle\Service;
 

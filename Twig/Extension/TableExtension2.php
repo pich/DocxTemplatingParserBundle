@@ -1,10 +1,4 @@
 <?php
-/**
- * TableExtension.php
- *
- * @author Camille Pire <camillepire@northvik.fr>
- * Date: 27/02/2016
- */
 
 namespace northvik\DocxTemplatingParserBundle\Twig\Extension;
 
