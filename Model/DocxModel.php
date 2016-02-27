@@ -11,11 +11,16 @@ namespace northvik\DocxTemplatingParserBundle\Model;
 
 /**
  * Class DocxModel
+ *
+ * This class is a model who stock all the data of the docx.
+ * It's contain all the differente path of the file and temporary file.
+ * There is also inside some variable as:
+ *  - The logs var, who are use for debug
+ *  - The twig params to give in argument
+ *  - The xml of the docx
+ *
  * @package northvik\DocxTemplatingParserBundle\Model
  * @author Camille Pire <camillepire@northvik.fr>
- *
- * It is use to stock the docx template
- *
  */
 class DocxModel
 {
@@ -66,12 +71,16 @@ class DocxModel
 
     /**
      * DocxModel constructor.
+     *
+     * - In this constructor we prepare the temporary and unique name.
+     * - We also initialise the log vars.
+     * - And set the vars give in the object attributes.
+     *
      * @param $pathTemplateInput
      * @param $pathTemplateOutput
      * @param array $param = array()
      * @param array $option = array()
      * @throws \Exception
-     * @internal param string $pathTemplate
      */
     public function __construct($pathTemplateInput, $pathTemplateOutput, array $param = array(), array $option = array())
     {
@@ -95,6 +104,8 @@ class DocxModel
 
     /**
      * DocxModel destructor.
+     *
+     * - The destructor clean all the file in the php tmp directory
      */
     function __destruct()
     {
@@ -104,8 +115,9 @@ class DocxModel
 
     /**
      * GetLogs
-     * get the log vars for this object\n
-     * use to debug
+     *
+     * - Get the log vars for this object
+     * - Use to debug
      *
      * @return string
      */
@@ -116,7 +128,8 @@ class DocxModel
 
     /**
      * AddToLogs
-     * add log at the right format for debuging this object
+     *
+     * - Add log at the right format for debuging this object
      *
      * @param string $log
      */
@@ -129,8 +142,9 @@ class DocxModel
 
     /**
      * DelTree
-     * Use to delete recursively files from a dir
-     * Use in the destructor
+     *
+     * - Use to delete recursively files from a dir
+     * - Use in the destructor
      *
      * @param string $dir
      * @return bool

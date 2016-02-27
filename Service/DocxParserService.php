@@ -15,16 +15,22 @@ use Twig_Loader_Array;
 
 /**
  * Class DocxParserService
+ *
+ * This service is the only access to the Parser and should be the
+ * only thing you call in your controller
+ *
+ * This service implement all the methodes for parsing the docx:
+ * - Methode for unzip the docx and extract the xml
+ * - Methode to add extension at twig and give the xml to twig
+ * - Methode to zip the result
+ *
  * @package northvik\DocxTemplatingParserBundle\Service
  * @author Camille Pire <camillepire@northvik.fr>
- *
- * Main class:
- * this class is the entry point of DocxTemplatingParserBundle
- *
  */
 class DocxParserService
 {
     /**
+     * Use to stock the docx Model
      * @var DocxModel $docx
      */
     protected $docx;
@@ -40,7 +46,9 @@ class DocxParserService
     /**
      * Parse
      *
-     * Main methode.
+     * This methode is the entry point and the only call to do
+     * - It's check the params and call the other methodes.
+     * - And return the logs
      *
      * @param $pathTemplateInput
      * @param $pathTemplateOutput
@@ -77,6 +85,9 @@ class DocxParserService
     /**
      * GetLogs
      *
+     * This return the logs
+     *
+     *
      * @return string
      */
     public function getLogs(){
@@ -86,6 +97,7 @@ class DocxParserService
     /**
      * GetDocx
      *
+     * It's return the docx model
      * @return DocxModel
      */
     public function getDocx(){
@@ -143,6 +155,7 @@ class DocxParserService
 
     /**
      * UnzipTemplate
+     *
      * unzip the docx in $pathTmpDir = '/tmp/DocxTemplatingParserBundle' by default
      */
     private function unzipTemplate(){
@@ -168,7 +181,8 @@ class DocxParserService
 
     /**
      * zipDocx
-     * zip the docx with all the change an word/document.xml
+     *
+     * zip the docx with all the change in word/document.xml
      */
     private function zipDocx(){
         try{
@@ -191,6 +205,7 @@ class DocxParserService
 
     /**
      * GetTemplate
+     *
      * Prepare template for the render with all the twig extension
      *
      * @return \Twig_Template|\Twig_TemplateInterface

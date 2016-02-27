@@ -21,7 +21,7 @@ class TableExtension extends \Twig_Extension {
     }
 
     /**
-     * @param string $string
+     * @param $array
      * @return int
      */
     public function docxTable ($array) {
