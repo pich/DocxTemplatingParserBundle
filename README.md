@@ -37,7 +37,7 @@ I'm allow to reproduce and improve the idea.
  new \northvik\DocxTemplatingParserBundle\northvikDocxTemplatingParserBundle()
  ```
  
- * Make sure your php.ini have timezone configure, a tmp dir with the good rights.
+ * Make sure your php.ini a have timezone configure and a tmp dir with the good rights.
  
  
  
